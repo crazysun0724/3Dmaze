@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>無重力 3D キューブ迷路 - FPS Matrix Edition</title>
+    <title>MAZE</title>
     <style>
         body {
             margin: 0;
@@ -17,51 +17,31 @@
 
         /* 全体レイアウト */
         #layout-wrapper {
-            display: flex;
-            flex-direction: column;
+            display: block;
             width: 100vw;
             height: 100vh;
-            padding: 10px;
-            box-sizing: border-box;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        /* 情報パネル */
-        #info-panel {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            justify-content: space-evenly;
-            align-items: center;
+            padding: 0;
         }
 
         #hud {
-            background: rgba(0, 10, 20, 0.7);
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);
-            text-shadow: 0 0 5px #00e5ff;
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            z-index: 50;
+            pointer-events: none;
         }
-        .hud-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; }
-        .hud-text { font-size: 0.9rem; margin-bottom: 2px; }
-
-        #minimap-container {
-            width: 100px;
-            height: 100px;
-            border: 1px solid rgba(0, 229, 255, 0.4);
-            border-radius: 5px;
-            background-color: rgba(0, 5, 10, 0.8);
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);
+        
+        #time-disp {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 15px #ffd700, 0 0 5px #000;
         }
 
-        /* 3Dメイン画面（正方形の窓） */
+        /* 3Dメイン画面 */
         #game-square {
-            position: relative;
-            border: 2px solid rgba(0, 229, 255, 0.4);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             background-color: #000;
         }
 
@@ -69,34 +49,6 @@
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
         }
-
-        /* 操作用 3x3 グリッド */
-        #ui-grid {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr;
-            z-index: 10;
-            pointer-events: none;
-        }
-        body.locked #ui-grid { display: none; }
-
-        .grid-btn {
-            pointer-events: auto; 
-            border: 1px solid rgba(0, 229, 255, 0.15);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: rgba(0, 229, 255, 0.6);
-            font-size: clamp(12px, 3.5vmin, 18px);
-            text-align: center;
-            user-select: none;
-            background: rgba(0, 0, 0, 0.01);
-            transition: background 0.1s, color 0.1s;
-        }
-        #btn-forward { border: 1px solid rgba(0, 229, 255, 0.3); font-weight: bold; font-size: clamp(14px, 4vmin, 22px); }
-        .grid-btn:active { background: rgba(0, 229, 255, 0.2); color: rgba(0, 229, 255, 1); }
 
         /* 中央のクロスヘア */
         #crosshair {
@@ -128,7 +80,21 @@
             text-align: center;
         }
         
-        .overlay-screen h1 { font-size: 3rem; text-shadow: 0 0 15px #00e5ff; margin-bottom: 20px; }
+        .title-3d {
+            font-size: 8rem;
+            font-weight: 900;
+            color: #00e5ff;
+            letter-spacing: 0.15em;
+            margin-bottom: 20px;
+            text-shadow: 
+                2px 2px 0px #0088aa,
+                4px 4px 0px #006688,
+                6px 6px 0px #004466,
+                8px 8px 0px #002244,
+                10px 10px 20px rgba(0, 229, 255, 0.6);
+            transform: perspective(600px) rotateX(15deg) rotateY(-10deg);
+        }
+
         .overlay-screen h2 { font-size: 2rem; margin-bottom: 20px; }
         .overlay-screen p { font-size: 1rem; color: #fff; margin-bottom: 30px; line-height: 1.5; }
 
@@ -144,7 +110,6 @@
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
-            margin-top: 20px;
         }
         .btn:hover { background-color: rgba(0, 229, 255, 0.3); box-shadow: 0 0 20px rgba(0, 229, 255, 0.5); }
 
@@ -152,7 +117,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 300px;
+            width: 320px;
             margin-bottom: 15px;
             font-size: 1.1rem;
             color: #fff;
@@ -163,17 +128,9 @@
         #menu-screen { display: none; }
         #clear-screen { display: none; }
 
-        @media (min-aspect-ratio: 1/1) {
-            #layout-wrapper { flex-direction: row; }
-            #info-panel {
-                flex-direction: column;
-                width: 200px;
-                height: 100%;
-                justify-content: flex-start;
-                gap: 20px;
-                padding-top: 20px;
-            }
-            #minimap-container { width: 140px; height: 140px; }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -181,93 +138,152 @@
 <body>
 
     <div id="layout-wrapper">
-        <div id="info-panel">
-            <div id="hud">
-                <div class="hud-title">無重力キューブ迷路</div>
-                <div class="hud-text" style="color:#ffd700; font-weight:bold;">LEVEL <span id="level-disp">1</span>: <span id="level-name">チュートリアル</span></div>
-                <div class="hud-text">TIME: <span id="time-disp">00:00.0</span></div>
-                <div class="hud-text">座標: <span id="pos-x">0</span>, <span id="pos-y">0</span>, <span id="pos-z">0</span> <span style="color:#888; font-size: 0.8em;">/ <span id="maze-grid-hud">9x9x9</span></span></div>
-                <div class="hud-text" style="color:#66aabb; font-size:0.7rem; margin-top:5px;">絶対座標: ビーコン『ゼニス』</div>
-                <div class="hud-text" style="color:#aaa; margin-top:5px;"><small>[Esc]または[M]キーでメニュー</small></div>
-                <button id="btn-open-menu" style="margin-top: 10px; background: rgba(0, 229, 255, 0.1); color: #00e5ff; border: 1px solid #00e5ff; border-radius: 3px; cursor: pointer; padding: 5px 10px; width: 100%;">設定・セーブ (M)</button>
-            </div>
-            <div id="minimap-container">
-                <canvas id="minimap-canvas"></canvas>
-            </div>
+        <div id="hud">
+            <div id="time-disp">00:00.0</div>
         </div>
-        
+
         <div id="game-square">
             <div id="canvas-container"></div>
             <div id="crosshair"></div>
-            
-            <div id="ui-grid">
-                <div class="grid-btn" id="btn-roll-180">天井↓<br><span style="font-size:0.7em">(左ロールx2)</span></div>
-                <div class="grid-btn" id="btn-up">▲<br>上向く</div>
-                <div class="grid-btn" id="btn-uturn">Ｕターン<br><span style="font-size:0.7em">(右向きx2)</span></div>
-                
-                <div class="grid-btn" id="btn-left">◀ 左向く</div>
-                <div class="grid-btn" id="btn-forward">前 進</div>
-                <div class="grid-btn" id="btn-right">右向く ▶</div>
-                
-                <div class="grid-btn" id="btn-roll-l">左壁↓<br><span style="font-size:0.7em">(左ロール)</span></div>
-                <div class="grid-btn" id="btn-down">下向く<br>▼</div>
-                <div class="grid-btn" id="btn-roll-r">右壁↓<br><span style="font-size:0.7em">(右ロール)</span></div>
-            </div>
         </div>
     </div>
 
     <!-- スタート画面 -->
-    <div id="start-screen" class="overlay-screen">
-        <h1>Zero Gravity Maze</h1>
-        <p>黄色く輝く「コア」を探し出せ。<br><br>【PC操作】<br>マウス移動：見回す<br>左クリック / Spaceキー：前進する<br>WASD / 矢印キー：上下左右を向く<br>Esc / Mキー：メニュー</p>
+    <div id="start-screen" class="overlay-screen" style="cursor: pointer;">
+        <h1 class="title-3d" data-i18n="title">MAZE</h1>
+        <p>
+            <span data-i18n="subtitle" style="display:block; margin-bottom: 15px;">黄色く輝く「コア」を探し出せ。</span>
+            <span data-i18n="controls1" style="font-weight:bold;">【PC操作】</span><br>
+            <span data-i18n="controls2">マウス移動：見回す</span><br>
+            <span data-i18n="controls3">左クリック / Spaceキー：前進する</span><br>
+            <span data-i18n="controls4">WASD / 矢印キー：上下左右を向く</span><br>
+            <span data-i18n="controlsMenu">右クリック / Esc / Mキー：設定の開閉</span>
+        </p>
         
         <div id="save-info" style="display:none; margin-bottom: 10px; font-size: 1.1rem; color: #ffd700; background: rgba(255, 215, 0, 0.1); padding: 10px 20px; border-radius: 5px; border: 1px solid rgba(255, 215, 0, 0.3);">
-            【セーブデータあり】<br>
-            LEVEL <span id="save-level"></span> / TIME <span id="save-time"></span>
+            <span data-i18n="dataRestoring">【データ復元中】</span><br>
+            <span data-i18n="level">LEVEL</span> <span id="save-level"></span> / <span data-i18n="time">TIME</span> <span id="save-time"></span>
         </div>
 
-        <div style="display: flex; gap: 20px; margin-top: 10px;">
-            <button id="btn-start" class="btn">NEW GAME</button>
-            <button id="btn-continue" class="btn" style="display:none; background-color: rgba(255, 215, 0, 0.1); border-color: #ffd700; color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);">CONTINUE</button>
+        <p style="font-size: 1.5rem; font-weight: bold; margin-top: 40px; animation: blink 2s infinite;" data-i18n="clickToMaze">Click to Maze</p>
+        
+        <!-- Geminiクレジット -->
+        <div style="position: absolute; bottom: 15px; right: 20px; font-size: 0.8rem; color: rgba(0, 229, 255, 0.4); pointer-events: none; font-family: 'Courier New', Courier, monospace; letter-spacing: 1px;">
+            Co-created with Gemini
         </div>
     </div>
 
     <!-- メニュー画面 -->
     <div id="menu-screen" class="overlay-screen">
-        <h2>OPTIONS</h2>
+        <h2 data-i18n="options">OPTIONS</h2>
+        
+        <div style="margin-bottom: 25px; text-align: left; background: rgba(0, 229, 255, 0.05); padding: 15px 25px; border-radius: 5px; border: 1px solid rgba(0, 229, 255, 0.2);">
+            <div data-i18n="controls1" style="font-weight:bold; margin-bottom: 8px; color: #ffd700;">【操作方法】</div>
+            <div data-i18n="controls2" style="font-size: 0.95rem; margin-bottom: 4px; color:#fff;">マウス移動：見回す</div>
+            <div data-i18n="controls3" style="font-size: 0.95rem; margin-bottom: 4px; color:#fff;">左クリック / Spaceキー：前進する</div>
+            <div data-i18n="controls4" style="font-size: 0.95rem; margin-bottom: 4px; color:#fff;">WASD / 矢印キー：上下左右を向く</div>
+            <div data-i18n="controlsMenu" style="font-size: 0.95rem; color:#fff;">右クリック / Esc / Mキー：設定の開閉</div>
+        </div>
+
         <div class="menu-control">
-            <span>移動時の視点リセット</span>
+            <span data-i18n="lang">言語 / Language</span>
+            <select id="lang-select" style="margin-left: 15px; padding: 5px; background: rgba(0,229,255,0.1); color: #00e5ff; border: 1px solid #00e5ff; border-radius: 3px; font-family: inherit; cursor: pointer; outline: none;">
+                <option value="ja">日本語</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="menu-control">
+            <span data-i18n="autoCenter">移動時の視点リセット</span>
             <input type="checkbox" id="auto-center">
         </div>
         <div class="menu-control">
-            <span>マウス感度</span>
+            <span data-i18n="mouseSens">マウス感度</span>
             <input type="range" id="sens-slider" min="1" max="100" value="100">
         </div>
         <div class="menu-control">
-            <span>上下 (Y軸) を反転</span>
+            <span data-i18n="invertY">上下 (Y軸) を反転</span>
             <input type="checkbox" id="invert-y">
         </div>
         <div class="menu-control">
-            <span>左右 (X軸) を反転</span>
+            <span data-i18n="invertX">左右 (X軸) を反転</span>
             <input type="checkbox" id="invert-x">
         </div>
-        <div style="display: flex; gap: 20px; margin-top: 10px;">
-            <button id="btn-resume" class="btn">ゲームに戻る</button>
-            <button id="btn-save-quit" class="btn" style="background-color: rgba(255, 50, 50, 0.1); border-color: #ff3333; color: #ff3333;">セーブしてタイトルへ</button>
-        </div>
+        
+        <button id="btn-save-quit" class="btn" style="margin-top: 30px; background-color: rgba(255, 50, 50, 0.1); border-color: #ff3333; color: #ff3333;" data-i18n="backToTitle">セーブしてタイトルへ</button>
     </div>
 
     <!-- クリア画面 -->
-    <div id="clear-screen" class="overlay-screen">
-        <h1 style="color: #ffd700; text-shadow: 0 0 20px #ffd700;" id="clear-title">LEVEL CLEARED!</h1>
-        <p id="clear-desc">立体迷路を踏破しました！<br>クリアタイム: <span id="clear-time-disp" style="font-weight:bold; color:#00e5ff;"></span><br>次の階層へ進みますか？</p>
-        <div style="display: flex; gap: 20px;">
-            <button id="btn-title-from-clear" class="btn" style="color: #ccc; border-color: #aaa; background-color: rgba(100, 100, 100, 0.1);">タイトルに戻る</button>
-            <button id="btn-next-level" class="btn" style="color: #ffd700; border-color: #ffd700;">次のレベルへ進む</button>
-        </div>
+    <div id="clear-screen" class="overlay-screen" style="cursor: pointer;">
+        <h1 style="color: #ffd700; text-shadow: 0 0 20px #ffd700; font-size: 4rem;" id="clear-title"></h1>
+        <p id="clear-desc" style="font-size: 1.5rem; margin-top: 10px;"></p>
+        <p style="font-size: 1.5rem; font-weight: bold; margin-top: 40px; animation: blink 2s infinite;" data-i18n="clickToMaze">Click to Maze</p>
     </div>
 
     <script>
+        // --- 多言語辞書 (i18n) ---
+        const texts = {
+            ja: {
+                time: "TIME",
+                title: "MAZE",
+                subtitle: "黄色く輝く「コア」を探し出せ。",
+                controls1: "【操作方法】",
+                controls2: "マウス移動：見回す",
+                controls3: "左クリック / Spaceキー：前進する",
+                controls4: "WASD / 矢印キー：上下左右を向く",
+                controlsMenu: "右クリック / Esc / Mキー：設定の開閉",
+                dataRestoring: "【データ復元中】",
+                level: "LEVEL",
+                clickToMaze: "Click to Maze",
+                options: "OPTIONS",
+                lang: "言語 / Language",
+                autoCenter: "移動時の視点リセット",
+                mouseSens: "マウス感度",
+                invertY: "上下 (Y軸) を反転",
+                invertX: "左右 (X軸) を反転",
+                backToTitle: "セーブしてタイトルへ",
+                tutorialCleared: "TUTORIAL CLEARED",
+                mainCleared: "MAZE CLEARED",
+                clearTime: "CLEAR TIME",
+                startedAt: "開始日時"
+            },
+            en: {
+                time: "TIME",
+                title: "MAZE",
+                subtitle: "Find the glowing yellow 'Core'.",
+                controls1: "[Controls]",
+                controls2: "Mouse: Look around",
+                controls3: "L-Click / Space: Move forward",
+                controls4: "WASD / Arrows: Look Up/Down/Left/Right",
+                controlsMenu: "Right Click / Esc / M: Toggle Settings",
+                dataRestoring: "[Restoring Data]",
+                level: "LEVEL",
+                clickToMaze: "Click to Maze",
+                options: "OPTIONS",
+                lang: "Language / 言語",
+                autoCenter: "Auto-center view on move",
+                mouseSens: "Mouse Sensitivity",
+                invertY: "Invert Y-Axis",
+                invertX: "Invert X-Axis",
+                backToTitle: "SAVE & QUIT TO TITLE",
+                tutorialCleared: "TUTORIAL CLEARED",
+                mainCleared: "MAZE CLEARED",
+                clearTime: "CLEAR TIME",
+                startedAt: "STARTED AT"
+            }
+        };
+
+        // ブラウザの言語設定から初期言語を決定
+        let currentLang = (navigator.language || navigator.userLanguage).startsWith('ja') ? 'ja' : 'en';
+
+        function updateLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (texts[currentLang][key]) {
+                    el.innerText = texts[currentLang][key];
+                }
+            });
+        }
+
         // --- 設定値・システム状態 ---
         let isGameRunning = false;
         let isCleared = false;
@@ -278,6 +294,7 @@
         let invertY = false;
         let autoCentering = false;
         let globalStep = 0; 
+        let mazeStartTime = null;
         const RENDER_DISTANCE = 7; 
 
         // --- シード付き乱数 (xorshift) ---
@@ -293,12 +310,10 @@
             return (x >>> 0) / 4294967296;
         }
 
-        // --- レベル定義 ---
         function getLevelConfig(lvl) {
-            if (lvl === 1) return { size: 4, name: "チュートリアル" };
-            if (lvl === 2) return { size: 9, name: "入門" };
-            if (lvl >= 3)  return { size: 50, name: "本番" };
-            return { size: 4, name: "不明" };
+            if (lvl === 1) return { size: 4 };
+            if (lvl >= 2)  return { size: 50 };
+            return { size: 4 };
         }
 
         function formatTime(t) {
@@ -308,60 +323,27 @@
             return `${m}:${s}.${ms}`;
         }
 
+        function formatDate(timestamp) {
+            const d = new Date(timestamp);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            const ss = String(d.getSeconds()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd} ${hh}:${min}:${ss}`;
+        }
+
         const startScreen = document.getElementById('start-screen');
         const menuScreen = document.getElementById('menu-screen');
         const clearScreen = document.getElementById('clear-screen');
 
-        let audioCtx = null;
-        function playBumpSound() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc.type = 'sine'; 
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
-            
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
-        }
-
         function updateLayout() {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            const isLandscape = w > h;
-            const pad = 15; 
-            
-            let size;
-            if (isLandscape) {
-                size = Math.min(h - pad * 2, w - 200 - pad * 3); 
-            } else {
-                const infoH = document.getElementById('info-panel').offsetHeight || 120;
-                size = Math.min(w - pad * 2, h - infoH - pad * 3);
-            }
-            
-            const square = document.getElementById('game-square');
-            square.style.width = size + 'px';
-            square.style.height = size + 'px';
-            
             if(camera && renderer) {
-                camera.aspect = 1; 
+                camera.aspect = window.innerWidth / window.innerHeight; 
                 camera.updateProjectionMatrix();
-                renderer.setSize(size, size);
+                renderer.setSize(window.innerWidth, window.innerHeight);
             }
-            
-            const minimapContainer = document.getElementById('minimap-container');
-            const mapSize = minimapContainer.clientWidth;
-            minimapRenderer.setSize(mapSize, mapSize);
         }
 
         // --- 設定 ---
@@ -374,7 +356,6 @@
             SIZE = newSize;
             GRID_SIZE = SIZE * 2 + 1;
             GOAL_POS.set(GRID_SIZE - 2, GRID_SIZE - 2, GRID_SIZE - 2);
-            document.getElementById('maze-grid-hud').innerText = `${GRID_SIZE}x${GRID_SIZE}x${GRID_SIZE}`;
         }
 
         // --- メインシーン初期化 ---
@@ -382,7 +363,7 @@
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x000205, 0.16); 
 
-        const camera = new THREE.PerspectiveCamera(95, 1, 0.1, 100);
+        const camera = new THREE.PerspectiveCamera(95, window.innerWidth / window.innerHeight, 0.1, 100);
         
         const freeLookRig = new THREE.Group();
         const cameraRig = new THREE.Group();
@@ -392,24 +373,9 @@
         freeLookRig.add(camera);
         camera.position.set(0, 0, 0.3);
 
-        const pointerGeo = new THREE.ConeGeometry(0.008, 0.04, 4);
-        pointerGeo.rotateX(Math.PI / 2); 
-        pointerGeo.rotateZ(Math.PI / 4); 
-        const pointerMat = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.9, depthTest: false });
-        const goalPointer3D = new THREE.Mesh(pointerGeo, pointerMat);
-        
-        const pointerWireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.5, depthTest: false });
-        const goalPointerWire = new THREE.Mesh(pointerGeo, pointerWireMat);
-        goalPointer3D.add(goalPointerWire);
-
-        goalPointer3D.renderOrder = 10;
-        goalPointerWire.renderOrder = 10;
-        
-        goalPointer3D.position.set(0, -0.06, -0.2);
-        camera.add(goalPointer3D);
-
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
 
         const ambientLight = new THREE.AmbientLight(0x223344); 
@@ -421,117 +387,15 @@
 
         // 絶対空間の背景
         const bgGroup = new THREE.Group();
-        camera.add(bgGroup);
+        cameraRig.add(bgGroup);
 
         const skyGeo = new THREE.SphereGeometry(80, 32, 16);
         const skyMat = new THREE.MeshBasicMaterial({
             color: 0x220000, wireframe: true, transparent: true, opacity: 0.15, fog: false, depthTest: false, blending: THREE.AdditiveBlending
         });
         const skyGrid = new THREE.Mesh(skyGeo, skyMat);
-        skyGrid.renderOrder = -5;
+        skyGrid.renderOrder = -6;
         bgGroup.add(skyGrid);
-
-        const horizonGeo = new THREE.TorusGeometry(80, 0.2, 4, 128);
-        const horizonMat = new THREE.MeshBasicMaterial({
-            color: 0xff1100, transparent: true, opacity: 0.6, fog: false, depthTest: false, blending: THREE.AdditiveBlending
-        });
-        const horizon = new THREE.Mesh(horizonGeo, horizonMat);
-        horizon.rotation.x = Math.PI / 2;
-        horizon.renderOrder = -4;
-        bgGroup.add(horizon);
-
-        const cyberPlanetGroup = new THREE.Group();
-        cyberPlanetGroup.position.set(-30, 20, -70); 
-        bgGroup.add(cyberPlanetGroup);
-
-        const planetGlowGeo = new THREE.SphereGeometry(6, 32, 32);
-        const planetGlowMat = new THREE.MeshBasicMaterial({ 
-            color: 0xffaa00, transparent: true, opacity: 0.2, fog: false, depthTest: false, blending: THREE.AdditiveBlending 
-        });
-        const planetGlow = new THREE.Mesh(planetGlowGeo, planetGlowMat);
-        planetGlow.renderOrder = -3;
-        cyberPlanetGroup.add(planetGlow);
-
-        const planetCoreGeo = new THREE.SphereGeometry(4, 32, 32);
-        const planetCoreMat = new THREE.MeshBasicMaterial({ 
-            color: 0xff6600, transparent: true, opacity: 0.8, fog: false, depthTest: false, blending: THREE.AdditiveBlending 
-        });
-        const planetCore = new THREE.Mesh(planetCoreGeo, planetCoreMat);
-        planetCore.renderOrder = -3; 
-        cyberPlanetGroup.add(planetCore);
-
-        const planetWireGeo = new THREE.SphereGeometry(4.2, 16, 16);
-        const planetWireMat = new THREE.MeshBasicMaterial({ 
-            color: 0xffcc00, wireframe: true, transparent: true, opacity: 0.4, fog: false, depthTest: false, blending: THREE.AdditiveBlending 
-        });
-        const planetWire = new THREE.Mesh(planetWireGeo, planetWireMat);
-        planetWire.renderOrder = -3;
-        cyberPlanetGroup.add(planetWire);
-
-        const planetRingGeo = new THREE.TorusGeometry(7, 0.05, 16, 100);
-        const planetRingMat = new THREE.MeshBasicMaterial({ 
-            color: 0xffdd00, transparent: true, opacity: 0.6, fog: false, depthTest: false, blending: THREE.AdditiveBlending 
-        });
-        const planetRing = new THREE.Mesh(planetRingGeo, planetRingMat);
-        planetRing.rotation.x = Math.PI / 2.2;
-        planetRing.rotation.y = Math.PI / 8;
-        planetRing.renderOrder = -3;
-        cyberPlanetGroup.add(planetRing);
-
-        // --- ミニマップ初期化 ---
-        const minimapCanvas = document.getElementById('minimap-canvas');
-        const minimapRenderer = new THREE.WebGLRenderer({ canvas: minimapCanvas, alpha: true, antialias: true });
-        const minimapScene = new THREE.Scene();
-        const minimapCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-        minimapCamera.position.set(0, 0, 0); 
-        
-        const minimapPlayerMarker = new THREE.Mesh(
-            new THREE.BoxGeometry(0.6, 0.6, 0.6),
-            new THREE.MeshBasicMaterial({ color: 0xffffff }) 
-        );
-        minimapScene.add(minimapPlayerMarker);
-        
-        const minimapPathGroup = new THREE.Group();
-        minimapScene.add(minimapPathGroup);
-
-        const MAX_EXPLORED = 50000;
-        const minimapSurroundingInstanced = new THREE.InstancedMesh(
-            new THREE.BoxGeometry(0.5, 0.5, 0.5),
-            new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.6 }),
-            MAX_EXPLORED
-        );
-        minimapSurroundingInstanced.count = 0;
-        minimapScene.add(minimapSurroundingInstanced);
-        
-        const exploredPaths = [];
-        const exploredSet = new Set();
-        const dummyObj = new THREE.Object3D();
-
-        function updateMinimapSurroundings() {
-            const px = Math.round(pos.x), py = Math.round(pos.y), pz = Math.round(pos.z);
-            let added = false;
-            const dirs = [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1], [0,0,0]]; 
-            for (let d of dirs) {
-                const nx = px + d[0], ny = py + d[1], nz = pz + d[2];
-                const key = `${nx},${ny},${nz}`;
-                if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && nz >= 0 && nz < GRID_SIZE) {
-                    if (maze[nx][ny][nz] === 0 && !exploredSet.has(key)) {
-                        exploredSet.add(key);
-                        exploredPaths.push(new THREE.Vector3(nx, ny, nz));
-                        added = true;
-                    }
-                }
-            }
-            if (added) {
-                minimapSurroundingInstanced.count = Math.min(exploredPaths.length, MAX_EXPLORED);
-                for(let i=0; i<minimapSurroundingInstanced.count; i++) {
-                    dummyObj.position.copy(exploredPaths[i]);
-                    dummyObj.updateMatrix();
-                    minimapSurroundingInstanced.setMatrixAt(i, dummyObj.matrix);
-                }
-                minimapSurroundingInstanced.instanceMatrix.needsUpdate = true;
-            }
-        }
 
         // --- マテリアルとローカル描画用プール ---
         const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -540,21 +404,42 @@
         const invisibleMaterial = new THREE.MeshBasicMaterial({ visible: false });
         const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.85, fog: true });
 
-        const FADE_STEPS = 150; 
+        // ★ 通過回数と経過ターンに応じたエネルギー制の軌跡マテリアル生成
+        const MAX_ENERGY = 900;
+        const ENERGY_PER_STEP = 300;
         const floorMats = [];
-        const colorStart = new THREE.Color(0x00ffff); 
-        const colorEnd = new THREE.Color(0x1a2532);   
-        const emissiveStart = new THREE.Color(0x0088aa);
-        const emissiveEnd = new THREE.Color(0x000000);
+        
+        const colorBlack = new THREE.Color(0x1a2532);
+        const colorCyan = new THREE.Color(0x00ffff);
+        const colorMagenta = new THREE.Color(0xff00ff);
+        const colorRed = new THREE.Color(0xff3300);
 
-        for(let i=0; i<=FADE_STEPS; i++) {
-            const t = i / FADE_STEPS;
-            const easeT = Math.pow(t, 0.6); 
-            const c = colorStart.clone().lerp(colorEnd, easeT);
-            const e = emissiveStart.clone().lerp(emissiveEnd, easeT);
+        const emissiveBlack = new THREE.Color(0x000000);
+        const emissiveCyan = new THREE.Color(0x0088aa);
+        const emissiveMagenta = new THREE.Color(0xaa00aa);
+        const emissiveRed = new THREE.Color(0xaa1100);
+
+        for(let i=0; i<=MAX_ENERGY; i++) {
+            let c = new THREE.Color();
+            let e = new THREE.Color();
+            
+            if (i <= 300) {
+                let t = i / 300;
+                let easeT = Math.pow(t, 0.6); // 暗くなる時は少し明るさを維持する
+                c.copy(colorBlack).lerp(colorCyan, easeT);
+                e.copy(emissiveBlack).lerp(emissiveCyan, easeT);
+            } else if (i <= 600) {
+                let t = (i - 300) / 300;
+                c.copy(colorCyan).lerp(colorMagenta, t);
+                e.copy(emissiveCyan).lerp(emissiveMagenta, t);
+            } else {
+                let t = (i - 600) / 300;
+                c.copy(colorMagenta).lerp(colorRed, t);
+                e.copy(emissiveMagenta).lerp(emissiveRed, t);
+            }
             
             floorMats.push(new THREE.MeshStandardMaterial({
-                color: c, emissive: e, roughness: 0.2, metalness: 0.8, transparent: true, opacity: 0.6, depthWrite: false
+                color: c, emissive: e, roughness: 0.2, metalness: 0.8, transparent: true, opacity: 0.3, depthWrite: false
             }));
         }
 
@@ -583,7 +468,11 @@
             else if (faceIndex === 3) fv = [p[2], p[6], p[3], p[3], p[6], p[7]]; 
             else if (faceIndex === 4) fv = [p[4], p[6], p[0], p[0], p[6], p[2]]; 
             else if (faceIndex === 5) fv = [p[1], p[3], p[5], p[5], p[3], p[7]]; 
-            for(let i=0; i<6; i++) vertices.push(...fv[i]);
+            for(let i=0; i<6; i++) pushVertices(vertices, fv[i]);
+        }
+        
+        function pushVertices(arr, vert) {
+            arr.push(vert[0], vert[1], vert[2]);
         }
 
         // --- 迷路の生成処理 ---
@@ -598,6 +487,7 @@
                 mazeEdges = null;
             }
 
+            // 迷路配列をすべて壁(1)で初期化
             maze = new Array(GRID_SIZE);
             for(let x=0; x<GRID_SIZE; x++) {
                 maze[x] = new Array(GRID_SIZE);
@@ -607,35 +497,142 @@
             }
 
             const startX = START_POS.x, startY = START_POS.y, startZ = START_POS.z;
-            const stack = [ [startX, startY, startZ] ];
-            maze[startX][startY][startZ] = 0;
-            
             const dirs = [ [2,0,0], [-2,0,0], [0,2,0], [0,-2,0], [0,0,2], [0,0,-2] ];
             
-            while(stack.length > 0) {
-                const current = stack[stack.length - 1];
+            // ==========================================
+            // ステップ 1: メインルート（正解ルート）の生成
+            // ==========================================
+            let routeStack = [ [startX, startY, startZ] ];
+            maze[startX][startY][startZ] = 0;
+            
+            let exploreState = new Map(); 
+            
+            function getUnexploredDirs(x, y, z) {
+                let key = `${x},${y},${z}`;
+                if (!exploreState.has(key)) {
+                    let d = [...dirs];
+                    // まずシャッフル
+                    for (let i = d.length - 1; i > 0; i--) {
+                        const j = Math.floor(xorshift32() * (i + 1));
+                        const temp = d[i]; d[i] = d[j]; d[j] = temp;
+                    }
+                    // ゴール方向に適度にバイアスをかける (寄り道させるノイズを追加)
+                    d.sort((a, b) => {
+                        const distA = Math.abs(GOAL_POS.x - (x+a[0])) + Math.abs(GOAL_POS.y - (y+a[1])) + Math.abs(GOAL_POS.z - (z+a[2]));
+                        const distB = Math.abs(GOAL_POS.x - (x+b[0])) + Math.abs(GOAL_POS.y - (y+b[1])) + Math.abs(GOAL_POS.z - (z+b[2]));
+                        return distA - distB + (xorshift32() * 12 - 6); 
+                    });
+                    exploreState.set(key, d);
+                }
+                return exploreState.get(key);
+            }
+
+            while (routeStack.length > 0) {
+                const current = routeStack[routeStack.length - 1];
                 const x = current[0], y = current[1], z = current[2];
                 
-                // シード付き乱数を使ってシャッフル
-                for (let i = dirs.length - 1; i > 0; i--) {
+                if (x === GOAL_POS.x && y === GOAL_POS.y && z === GOAL_POS.z) {
+                    break; // ゴールに到達！ メインルート確定
+                }
+                
+                let dArr = getUnexploredDirs(x, y, z);
+                let moved = false;
+                
+                while (dArr.length > 0) {
+                    const d = dArr.shift();
+                    const nx = x + d[0], ny = y + d[1], nz = z + d[2];
+                    
+                    if (nx > 0 && nx < GRID_SIZE - 1 && ny > 0 && ny < GRID_SIZE - 1 && nz > 0 && nz < GRID_SIZE - 1 && maze[nx][ny][nz] === 1) {
+                        maze[x + d[0]/2][y + d[1]/2][z + d[2]/2] = 0; // 通路を掘る
+                        maze[nx][ny][nz] = 0;
+                        routeStack.push([nx, ny, nz]);
+                        moved = true;
+                        break;
+                    }
+                }
+                
+                if (!moved) {
+                    // 行き止まりならバックトラックし、掘った壁を元に戻す
+                    const deadEnd = routeStack.pop();
+                    if (routeStack.length > 0) {
+                        const prev = routeStack[routeStack.length - 1];
+                        maze[(deadEnd[0] + prev[0])/2][(deadEnd[1] + prev[1])/2][(deadEnd[2] + prev[2])/2] = 1;
+                        maze[deadEnd[0]][deadEnd[1]][deadEnd[2]] = 1;
+                    }
+                }
+            }
+
+            if (routeStack.length === 0) {
+                // 安全装置 (通常はありえませんが念のため)
+                routeStack = [ [startX, startY, startZ] ];
+                maze[startX][startY][startZ] = 0;
+            }
+
+            // ==========================================
+            // ステップ 2: 枝分かれ（ダミールート）の生成
+            // ==========================================
+            // 生成されたメインルートのマスからランダムに枝を伸ばす
+            let activeCells = [...routeStack];
+            let consecutiveSteps = 0;
+            // 最低保証：ステージの1辺の長さ（GRID_SIZE）の3分の1に指定
+            const MIN_STEPS = Math.floor(GRID_SIZE / 3); 
+            
+            while (activeCells.length > 0) {
+                let index;
+                
+                // 最低保証歩数に達するまでは、強制的に道の先端を伸ばし続ける
+                if (consecutiveSteps < MIN_STEPS) {
+                    index = activeCells.length - 1;
+                } else {
+                    // 保証歩数を超えたら、10%の確率で別の場所から新しい分岐を作る
+                    if (xorshift32() < 0.90) {
+                        index = activeCells.length - 1;
+                    } else {
+                        index = Math.floor(xorshift32() * activeCells.length);
+                    }
+                }
+                
+                const current = activeCells[index];
+                const x = current[0], y = current[1], z = current[2];
+                
+                let dArr = [...dirs];
+                for (let i = dArr.length - 1; i > 0; i--) {
                     const j = Math.floor(xorshift32() * (i + 1));
-                    const temp = dirs[i]; dirs[i] = dirs[j]; dirs[j] = temp;
+                    const temp = dArr[i]; dArr[i] = dArr[j]; dArr[j] = temp;
                 }
                 
                 let carved = false;
                 for (let i = 0; i < 6; i++) {
-                    const dx = dirs[i][0], dy = dirs[i][1], dz = dirs[i][2];
+                    const dx = dArr[i][0], dy = dArr[i][1], dz = dArr[i][2];
                     const nx = x + dx, ny = y + dy, nz = z + dz;
+                    
                     if (nx > 0 && nx < GRID_SIZE - 1 && ny > 0 && ny < GRID_SIZE - 1 && nz > 0 && nz < GRID_SIZE - 1 && maze[nx][ny][nz] === 1) {
                         maze[x + dx/2][y + dy/2][z + dz/2] = 0;
                         maze[nx][ny][nz] = 0;
-                        stack.push([nx, ny, nz]);
+                        activeCells.push([nx, ny, nz]); // 新しく掘ったマスを候補に追加
                         carved = true;
-                        break; 
+                        
+                        if (index === activeCells.length - 2) {
+                            // 道の先端を伸ばした場合はカウンターを増やす
+                            consecutiveSteps++;
+                        } else {
+                            // 別の場所が選ばれ、新しい分岐が発生した場合はカウンターリセット
+                            consecutiveSteps = 1;
+                        }
+                        break;
                     }
                 }
+                
                 if (!carved) {
-                    stack.pop(); 
+                    // 全方向に進めないマスは候補から削除 (処理を高速化するため O(1) スワップ削除)
+                    if (index === activeCells.length - 1) {
+                        activeCells.pop();
+                        // 先端が行き止まりになったら、別の道が強制的に始まるためカウンターリセット
+                        consecutiveSteps = 0;
+                    } else {
+                        activeCells[index] = activeCells[activeCells.length - 1];
+                        activeCells.pop();
+                    }
                 }
             }
             
@@ -662,8 +659,6 @@
         let dir = new THREE.Vector3(0, 0, -1);
         let up = new THREE.Vector3(0, 1, 0);
 
-        let minimapOffsetForward = 0;
-
         cameraRig.position.copy(pos);
         function getTargetQuaternion(p, d, u) {
             const target = p.clone().add(d);
@@ -675,7 +670,6 @@
         }
 
         const visitedBlocks = new Map(); 
-        const minimapMarkers = new Map(); 
         let currentStandingKey = "";
         let animationQueue = [];
 
@@ -690,15 +684,7 @@
             freeLookRig.quaternion.set(0, 0, 0, 1);
             targetCameraQuat.set(0, 0, 0, 1);
 
-            while(minimapPathGroup.children.length > 0){ 
-                minimapPathGroup.remove(minimapPathGroup.children[0]); 
-            }
-            minimapMarkers.clear();
             visitedBlocks.clear();
-            
-            exploredPaths.length = 0;
-            exploredSet.clear();
-            minimapSurroundingInstanced.count = 0;
             
             currentStandingKey = `${Math.round(pos.x)},${Math.round(pos.y)},${Math.round(pos.z)}`;
             globalStep = 0; 
@@ -706,30 +692,25 @@
             isAnimating = false;
             animProgress = 0;
             animationQueue = []; 
-            minimapOffsetForward = 0; 
 
-            updateMinimapSurroundings();
             updateVisibleArea();
-            
-            document.getElementById('pos-x').innerText = Math.round(pos.x);
-            document.getElementById('pos-y').innerText = Math.round(pos.y);
-            document.getElementById('pos-z').innerText = Math.round(pos.z);
         }
 
-        // ★追加：セーブ＆ロード処理
+        // --- オートセーブ＆ロード処理 ---
         function saveGame() {
             const data = {
                 level: currentLevel,
                 time: gameTime,
                 step: globalStep,
                 seed: currentMazeSeed,
+                mazeStartTime: mazeStartTime,
                 player: {
                     pos: { x: pos.x, y: pos.y, z: pos.z },
                     dir: { x: dir.x, y: dir.y, z: dir.z },
                     up: { x: up.x, y: up.y, z: up.z }
                 },
-                visited: Array.from(visitedBlocks.entries()).map(([k, v]) => [k, v.lastStep]),
-                explored: Array.from(exploredSet)
+                // [キー, 完全に消滅する予定のグローバルステップ] を保存
+                visited: Array.from(visitedBlocks.entries()).map(([k, expireStep]) => [k, expireStep])
             };
             localStorage.setItem('zgMazeSaveData', JSON.stringify(data));
         }
@@ -741,20 +722,16 @@
             try {
                 const data = JSON.parse(saved);
                 
-                // レベルとサイズ設定
                 currentLevel = data.level;
                 const config = getLevelConfig(currentLevel);
                 updateGameSize(config.size);
-                document.getElementById('level-disp').innerText = currentLevel;
-                document.getElementById('level-name').innerText = config.name;
                 
-                // 迷路復元 (シードを戻して生成)
+                mazeStartTime = data.mazeStartTime || null;
                 rngState.seed = data.seed;
                 currentMazeSeed = data.seed;
                 buildMaze();
                 updateGoalPosition();
                 
-                // プレイヤーステータス復元
                 gameTime = data.time;
                 globalStep = data.step;
                 pos.set(data.player.pos.x, data.player.pos.y, data.player.pos.z);
@@ -768,56 +745,29 @@
                 
                 currentStandingKey = `${Math.round(pos.x)},${Math.round(pos.y)},${Math.round(pos.z)}`;
 
-                // ミニマップと足跡のクリア
-                while(minimapPathGroup.children.length > 0){ 
-                    minimapPathGroup.remove(minimapPathGroup.children[0]); 
-                }
-                minimapMarkers.clear();
                 visitedBlocks.clear();
-                exploredPaths.length = 0;
-                exploredSet.clear();
 
-                // 足跡(Visited)の復元
                 data.visited.forEach(item => {
-                    const key = item[0], step = item[1];
-                    const [cx, cy, cz] = key.split(',').map(Number);
-                    visitedBlocks.set(key, { lastStep: step });
-
-                    const marker = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.55, 0.55, 0.55),
-                        new THREE.MeshBasicMaterial({ color: 0x2a3542, transparent: true, opacity: 0.9 })
-                    );
-                    marker.position.set(cx, cy, cz);
-                    minimapPathGroup.add(marker);
-                    minimapMarkers.set(key, { mesh: marker, lastStep: step });
+                    if (item.length >= 2) {
+                        const key = item[0];
+                        if (item.length === 3) {
+                            // 古いセーブデータとの互換性対策 [key, lastStep, count]
+                            const lastStep = item[1];
+                            const count = item[2] || 1;
+                            const energy = count * ENERGY_PER_STEP;
+                            visitedBlocks.set(key, lastStep + energy);
+                        } else {
+                            // 新しいデータ [key, expireStep]
+                            visitedBlocks.set(key, item[1]);
+                        }
+                    }
                 });
-
-                // 探索済みエリア(Explored)の復元
-                data.explored.forEach(key => {
-                    exploredSet.add(key);
-                    const [cx, cy, cz] = key.split(',').map(Number);
-                    exploredPaths.push(new THREE.Vector3(cx, cy, cz));
-                });
-                
-                minimapSurroundingInstanced.count = Math.min(exploredPaths.length, MAX_EXPLORED);
-                for(let i=0; i<minimapSurroundingInstanced.count; i++) {
-                    dummyObj.position.copy(exploredPaths[i]);
-                    dummyObj.updateMatrix();
-                    minimapSurroundingInstanced.setMatrixAt(i, dummyObj.matrix);
-                }
-                minimapSurroundingInstanced.instanceMatrix.needsUpdate = true;
 
                 updateTrails();
-                updateVisibleArea();
-                
-                document.getElementById('pos-x').innerText = Math.round(pos.x);
-                document.getElementById('pos-y').innerText = Math.round(pos.y);
-                document.getElementById('pos-z').innerText = Math.round(pos.z);
                 
                 isAnimating = false;
                 animProgress = 0;
                 animationQueue = []; 
-                minimapOffsetForward = 0; 
                 
                 return true;
             } catch(e) {
@@ -834,51 +784,100 @@
                     document.getElementById('save-level').innerText = data.level;
                     document.getElementById('save-time').innerText = formatTime(data.time);
                     document.getElementById('save-info').style.display = 'block';
-                    document.getElementById('btn-continue').style.display = 'block';
                 } catch(e) { }
             } else {
                 document.getElementById('save-info').style.display = 'none';
-                document.getElementById('btn-continue').style.display = 'none';
             }
         }
         checkSaveData();
 
-        document.getElementById('btn-next-level').addEventListener('click', () => {
-            currentLevel++;
-            const config = getLevelConfig(currentLevel);
-            
-            // 全クリアチェック
-            if (currentLevel > 3) {
-                alert("CONGRATULATIONS!! 全ての迷路を踏破しました！");
-                localStorage.removeItem('zgMazeSaveData');
-                returnToTitle();
-                return;
+        // 画面を離れる時に強制セーブ
+        window.addEventListener('beforeunload', () => {
+            if (isGameRunning || menuScreen.style.display === 'flex') saveGame();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                if (isGameRunning || menuScreen.style.display === 'flex') saveGame();
             }
-            
-            document.getElementById('level-disp').innerText = currentLevel;
-            document.getElementById('level-name').innerText = config.name;
-            gameTime = 0;
-            
+        });
+
+        // --- スタート処理 (クリックで開始) ---
+        startScreen.addEventListener('click', (e) => {
+            if (localStorage.getItem('zgMazeSaveData')) {
+                if (loadGame()) {
+                    startGameLoop();
+                    return;
+                }
+            }
+            startNewGame();
+        });
+
+        function startNewGame() {
+            currentLevel = 1;
+            mazeStartTime = null;
+            const config = getLevelConfig(currentLevel);
             updateGameSize(config.size);
+            
             rngState.seed = Math.floor(Math.random() * 4294967296);
             currentMazeSeed = rngState.seed;
-            buildMaze();    
-            updateGoalPosition(); 
-            resetPlayer();  
             
-            // 次のレベルに入ったらオートセーブ
-            saveGame();
-            
-            isCleared = false;
-            clearScreen.style.display = 'none';
+            buildMaze();
+            updateGoalPosition();
+            resetPlayer();
+
+            saveGame(); 
+            startGameLoop();
+        }
+
+        function startGameLoop() {
             isGameRunning = true;
-            
+            startScreen.style.display = 'none';
             if (document.body.requestPointerLock) {
                 document.body.requestPointerLock().catch(err => {
-                    document.body.classList.add('locked');
+                    document.body.classList.add('locked'); 
                 });
             } else {
                 document.body.classList.add('locked');
+            }
+        }
+
+        clearScreen.addEventListener('click', () => {
+            if (currentLevel < 2) {
+                currentLevel++; 
+                if (currentLevel === 2) {
+                    mazeStartTime = new Date().getTime();
+                }
+            }
+            
+            const config = getLevelConfig(currentLevel);
+
+            gameTime = 0;
+
+            updateGameSize(config.size);
+            rngState.seed = Math.floor(Math.random() * 4294967296);
+            currentMazeSeed = rngState.seed;
+            buildMaze();
+            updateGoalPosition();
+            resetPlayer();
+
+            saveGame();
+
+            isCleared = false;
+            document.body.classList.remove('cleared');
+            clearScreen.style.display = 'none';
+            startGameLoop();
+        });
+
+        document.addEventListener('pointerlockchange', () => {
+            if (isCleared) return; 
+            
+            if (document.pointerLockElement === document.body) {
+                isGameRunning = true;
+                document.body.classList.add('locked');
+            } else {
+                document.body.classList.remove('locked');
+                openMenu(false);
             }
         });
 
@@ -926,9 +925,12 @@
                                         
                                         const pathKey = `${nx},${ny},${nz}`;
                                         if (visitedBlocks.has(pathKey)) {
-                                            const age = globalStep - visitedBlocks.get(pathKey).lastStep;
-                                            if(age <= FADE_STEPS) {
-                                                mat = floorMats[age]; 
+                                            const expireStep = visitedBlocks.get(pathKey);
+                                            // 残りのエネルギー量を計算
+                                            const energy = Math.max(0, expireStep - globalStep);
+                                            if(energy > 0) {
+                                                const matIndex = Math.min(MAX_ENERGY, energy);
+                                                mat = floorMats[matIndex]; 
                                             }
                                         }
                                     }
@@ -970,21 +972,13 @@
 
         function updateTrails() {
             const toDelete = [];
-            minimapMarkers.forEach((data, key) => {
-                const age = globalStep - data.lastStep;
-                if (age > FADE_STEPS) {
+            visitedBlocks.forEach((expireStep, key) => {
+                // 現在の歩数が消滅予定ステップを超えたらデータを削除
+                if (globalStep >= expireStep) {
                     toDelete.push(key);
-                } else {
-                    const t = Math.min(1.0, age / FADE_STEPS);
-                    data.mesh.material.opacity = 0.9 - t * 0.6; 
                 }
             });
             for(let key of toDelete) {
-                const data = minimapMarkers.get(key);
-                minimapPathGroup.remove(data.mesh);
-                data.mesh.geometry.dispose();
-                data.mesh.material.dispose();
-                minimapMarkers.delete(key);
                 visitedBlocks.delete(key); 
             }
             
@@ -996,29 +990,24 @@
             
             if (newPosKey !== currentStandingKey) {
                 globalStep++; 
-                visitedBlocks.set(currentStandingKey, { lastStep: globalStep });
-
-                if (!minimapMarkers.has(currentStandingKey)) {
-                    const marker = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.55, 0.55, 0.55),
-                        new THREE.MeshBasicMaterial({ color: 0x2a3542, transparent: true, opacity: 0.9 })
-                    );
-                    const [cx, cy, cz] = currentStandingKey.split(',').map(Number);
-                    marker.position.set(cx, cy, cz);
-                    minimapPathGroup.add(marker);
-                    minimapMarkers.set(currentStandingKey, { mesh: marker, lastStep: globalStep });
-                } else {
-                    minimapMarkers.get(currentStandingKey).lastStep = globalStep;
+                
+                let currentEnergy = 0;
+                if (visitedBlocks.has(currentStandingKey)) {
+                    const expireStep = visitedBlocks.get(currentStandingKey);
+                    currentEnergy = Math.max(0, expireStep - globalStep);
                 }
                 
+                // 現在のエネルギーに300を加え、最大900に制限する
+                const newEnergy = Math.min(MAX_ENERGY, currentEnergy + ENERGY_PER_STEP);
+                // そのマスが完全に消える未来のステップ数を保存
+                visitedBlocks.set(currentStandingKey, globalStep + newEnergy);
+
                 currentStandingKey = newPosKey;
                 
                 updateTrails(); 
-                updateMinimapSurroundings();
+                
+                saveGame();
             }
-            document.getElementById('pos-x').innerText = Math.round(pos.x);
-            document.getElementById('pos-y').innerText = Math.round(pos.y);
-            document.getElementById('pos-z').innerText = Math.round(pos.z);
         }
 
         updateLayout();
@@ -1186,6 +1175,7 @@
                 } else {
                     animationQueue.push({ pos: pos.clone(), dir: startDir.clone().negate(), up: startUp.clone().negate(), animType: 'pitch180' });
                 }
+                
                 processAnimationQueue();
                 return;
             }
@@ -1193,7 +1183,7 @@
             let simPos = pos.clone();
             let simDir = startDir.clone();
             let simUp = startUp.clone();
-            let maxSteps = 100; 
+            let maxSteps = 1000; 
             
             while (maxSteps-- > 0) {
                 simPos.add(simDir);
@@ -1229,6 +1219,7 @@
                     }
                 }
             }
+            
             processAnimationQueue();
         }
 
@@ -1250,13 +1241,19 @@
         function turnAround() { if(!isAnimating && isGameRunning && animationQueue.length === 0) startAnimation(pos, dir.clone().applyAxisAngle(up, -Math.PI).round(), up, 'turn180'); }
 
         // --- メニュー管理とマウスロック ---
-        function openMenu() {
+        let menuFromTitle = false;
+
+        function openMenu(fromTitle = false) {
+            if (isCleared) return; 
+            
+            menuFromTitle = fromTitle;
             if (isGameRunning && !isCleared) {
                 isGameRunning = false;
                 if (document.exitPointerLock) document.exitPointerLock();
                 document.body.classList.remove('locked');
-                menuScreen.style.display = 'flex';
             }
+            menuScreen.style.display = 'flex';
+            updateLanguage(); 
         }
 
         function resumeGame() {
@@ -1271,114 +1268,61 @@
             }
         }
 
-        document.getElementById('btn-open-menu').addEventListener('click', (e) => {
-            e.stopPropagation();
-            openMenu();
+        // デフォルトの右クリックメニューを無効化
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); 
         });
 
-        document.getElementById('btn-start').addEventListener('click', () => {
-            currentLevel = 1;
-            const config = getLevelConfig(currentLevel);
-            updateGameSize(config.size);
-            document.getElementById('level-disp').innerText = currentLevel;
-            document.getElementById('level-name').innerText = config.name;
-            
-            rngState.seed = Math.floor(Math.random() * 4294967296);
-            currentMazeSeed = rngState.seed;
-            
-            buildMaze();
-            updateGoalPosition();
-            resetPlayer();
+        // マウスのボタンイベントを統合 (右クリックによるメニュー開閉を含む)
+        document.addEventListener('mousedown', (e) => {
+            // --- 右クリック (設定メニューの開閉) ---
+            if (e.button === 2) {
+                if (isCleared) return; 
+                
+                if (menuScreen.style.display === 'flex') {
+                    if (menuFromTitle) {
+                        menuScreen.style.display = 'none';
+                        startScreen.style.display = 'flex';
+                        checkSaveData();
+                    } else {
+                        resumeGame();
+                    }
+                    return;
+                }
 
-            isGameRunning = true;
-            gameTime = 0;
-            startScreen.style.display = 'none';
-            if (document.body.requestPointerLock) {
-                document.body.requestPointerLock().catch(err => {
-                    document.body.classList.add('locked'); 
-                });
-            } else {
-                document.body.classList.add('locked');
-            }
-        });
-        
-        document.getElementById('btn-continue').addEventListener('click', () => {
-            if (loadGame()) {
-                isGameRunning = true;
-                startScreen.style.display = 'none';
-                if (document.body.requestPointerLock) {
-                    document.body.requestPointerLock().catch(err => {
-                        document.body.classList.add('locked'); 
-                    });
-                } else {
-                    document.body.classList.add('locked');
+                if (!isGameRunning && startScreen.style.display !== 'none') {
+                    startScreen.style.display = 'none';
+                    openMenu(true);
+                    return;
+                }
+
+                if (isGameRunning) {
+                    openMenu(false);
+                    return;
                 }
             }
+
+            // --- 左クリック (前進) ---
+            if (e.button === 0) {
+                if (!isGameRunning) return;
+                if (e.target.closest('.overlay-screen')) return;
+
+                moveForward();
+            }
         });
 
-        document.getElementById('btn-resume').addEventListener('click', () => {
-            resumeGame();
-        });
-
-        function returnToTitle() {
+        document.getElementById('btn-save-quit').addEventListener('click', () => {
+            saveGame();
             isGameRunning = false;
             isCleared = false;
-            
+            document.body.classList.remove('cleared');
             menuScreen.style.display = 'none';
             clearScreen.style.display = 'none';
             startScreen.style.display = 'flex';
-            
             checkSaveData();
-            
-            if (document.exitPointerLock) {
-                document.exitPointerLock();
-            }
+            if (document.exitPointerLock) document.exitPointerLock();
             document.body.classList.remove('locked');
-            
-            goalPointer3D.visible = false;
-        }
-
-        // メニュー画面の「セーブしてタイトルへ」
-        document.getElementById('btn-save-quit').addEventListener('click', () => {
-            saveGame();
-            returnToTitle();
         });
-        
-        // クリア画面の「タイトルに戻る」 (※クリア済みなのでセーブは破棄)
-        document.getElementById('btn-title-from-clear').addEventListener('click', () => {
-            localStorage.removeItem('zgMazeSaveData');
-            returnToTitle();
-        });
-
-        document.addEventListener('pointerlockchange', () => {
-            if (document.pointerLockElement === document.body) {
-                isGameRunning = true;
-                document.body.classList.add('locked');
-            } else {
-                document.body.classList.remove('locked');
-                openMenu();
-            }
-        });
-
-        document.addEventListener('mousedown', (e) => {
-            if (!isGameRunning) return;
-            if (e.target.closest('#info-panel') || e.target.closest('.overlay-screen')) return;
-
-            if (e.button === 0) { 
-                moveForward();
-            } else if (e.button === 1) { 
-                e.preventDefault();
-                minimapOffsetForward = 0;
-            }
-        });
-
-        document.addEventListener('wheel', (e) => {
-            if (!isGameRunning || e.target.closest('.overlay-screen')) return;
-            
-            const moveAmount = e.deltaY > 0 ? -1 : 1;
-            minimapOffsetForward += moveAmount * 1.5; 
-            minimapOffsetForward = Math.max(-5, minimapOffsetForward);
-        }, { passive: true });
 
         function applyFreeLook(deltaX, deltaY) {
             const multX = invertX ? 1 : -1;
@@ -1402,6 +1346,7 @@
 
         function saveSettings() {
             const settings = {
+                lang: currentLang,
                 sensSlider: document.getElementById('sens-slider').value,
                 invertY: invertY,
                 invertX: invertX,
@@ -1415,6 +1360,8 @@
             if (saved) {
                 try {
                     const settings = JSON.parse(saved);
+                    if(settings.lang) currentLang = settings.lang;
+                    document.getElementById('lang-select').value = currentLang;
                     document.getElementById('sens-slider').value = settings.sensSlider;
                     document.getElementById('invert-y').checked = settings.invertY;
                     document.getElementById('invert-x').checked = settings.invertX;
@@ -1428,9 +1375,16 @@
                     console.error("設定の読み込みに失敗しました", e);
                 }
             }
+            updateLanguage();
         }
         
         loadSettings();
+
+        document.getElementById('lang-select').addEventListener('change', (e) => {
+            currentLang = e.target.value;
+            updateLanguage();
+            saveSettings();
+        });
 
         document.getElementById('auto-center').addEventListener('change', (e) => { 
             autoCentering = e.target.checked; 
@@ -1451,78 +1405,29 @@
             saveSettings();
         });
 
-        let pointerDownPos = {x:0, y:0};
-        let isDraggingCamera = false;
-        let previousMousePosition = { x: 0, y: 0 };
-
-        const setupBtn = (id, action) => {
-            const btn = document.getElementById(id);
-            if(btn) {
-                btn.addEventListener('pointerdown', (e) => { e.stopPropagation(); pointerDownPos = { x: e.clientX, y: e.clientY }; });
-                btn.addEventListener('pointerup', (e) => {
-                    if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) < 10) action();
-                });
-            }
-        };
-
-        setupBtn('btn-forward', moveForward); setupBtn('btn-up', turnUp); setupBtn('btn-down', turnDown);
-        setupBtn('btn-left', turnLeft); setupBtn('btn-right', turnRight);
-        setupBtn('btn-roll-l', rollLeftWallToFloor); setupBtn('btn-roll-r', rollRightWallToFloor);
-        setupBtn('btn-roll-180', rollCeilingToFloor); setupBtn('btn-uturn', turnAround);
-
-        window.addEventListener('pointerdown', (e) => {
-            if (e.target.closest('#info-panel') || e.target.closest('.overlay-screen') || !isGameRunning) return;
-            if (document.pointerLockElement === document.body) return; 
-            isDraggingCamera = true;
-            previousMousePosition = { x: e.clientX, y: e.clientY };
-        }, {passive: false});
-        
-        window.addEventListener('pointermove', (e) => {
-            if (!isDraggingCamera || !isGameRunning) return;
-            if (document.pointerLockElement === document.body) return; 
-            
-            if (e.cancelable) e.preventDefault(); 
-
-            const deltaX = e.clientX - previousMousePosition.x;
-            const deltaY = e.clientY - previousMousePosition.y;
-            previousMousePosition = { x: e.clientX, y: e.clientY };
-
-            applyFreeLook(deltaX * 2, deltaY * 2);
-        }, {passive: false});
-        
-        window.addEventListener('pointerup', () => isDraggingCamera = false);
-        window.addEventListener('pointercancel', () => isDraggingCamera = false);
-
-        window.addEventListener('touchstart', (e) => {
-            if (e.target.closest('#info-panel') || e.target.closest('.overlay-screen') || !isGameRunning) return;
-            isDraggingCamera = true;
-            previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        }, {passive: false});
-        
-        window.addEventListener('touchmove', (e) => {
-            if (!isDraggingCamera || !isGameRunning) return;
-            const deltaX = e.touches[0].clientX - previousMousePosition.x;
-            const deltaY = e.touches[0].clientY - previousMousePosition.y;
-            previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-
-            applyFreeLook(deltaX * 2, deltaY * 2);
-        }, {passive: false});
-        
-        window.addEventListener('touchend', () => isDraggingCamera = false);
-
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' || e.key === 'm' || e.key === 'M') {
+                if (isCleared) return; 
                 if (menuScreen.style.display === 'flex') {
-                    resumeGame();
+                    if (menuFromTitle) {
+                        menuScreen.style.display = 'none';
+                        startScreen.style.display = 'flex';
+                        checkSaveData();
+                    } else {
+                        resumeGame();
+                    }
                 } else if (isGameRunning) {
-                    openMenu();
+                    openMenu(false);
+                } else if (startScreen.style.display !== 'none') {
+                    startScreen.style.display = 'none';
+                    openMenu(true);
                 }
                 return;
             }
             if (!isGameRunning) return;
             
             if(e.code === 'Space' || e.key === 'Enter') {
-                e.preventDefault(); // スペースキーでの画面スクロールを防止
+                e.preventDefault(); 
                 moveForward();
             }
             if(e.key === 'w' || e.key === 'ArrowUp') turnUp();
@@ -1552,39 +1457,9 @@
             goalGroup.rotation.x += 1 * delta;
             goalGroup.rotation.y += 2 * delta;
 
-            planetWire.rotation.y += delta * 0.05;
-            planetWire.rotation.x += delta * 0.02;
-            planetRing.rotation.z -= delta * 0.1;
             skyGrid.rotation.y += delta * 0.01; 
 
             freeLookRig.quaternion.slerp(targetCameraQuat, 0.15);
-
-            // 3Dナビゲーターの更新
-            if (isGameRunning && document.pointerLockElement === document.body && !isCleared) {
-                goalPointer3D.visible = true;
-                
-                goalPointer3D.lookAt(GOAL_POS);
-
-                const maxDist = Math.max(50, GRID_SIZE * 1.5); 
-                const dist = pos.distanceTo(GOAL_POS);
-                
-                let scale = 1.0 + Math.max(0, (maxDist - dist) / maxDist) * 1.5; 
-                if (dist <= 2) scale *= 1.5; 
-                goalPointer3D.scale.set(scale, scale, scale);
-                
-                const localGoalPos = GOAL_POS.clone();
-                camera.worldToLocal(localGoalPos); 
-                
-                if (localGoalPos.z > 0) {
-                    pointerMat.opacity = 0.2;
-                    pointerWireMat.opacity = 0.1;
-                } else {
-                    pointerMat.opacity = 0.9;
-                    pointerWireMat.opacity = 0.5;
-                }
-            } else {
-                goalPointer3D.visible = false; 
-            }
 
             if (isAnimating) {
                 let speed = 2.5;
@@ -1610,19 +1485,19 @@
                     if (Math.round(pos.x) === GOAL_POS.x && Math.round(pos.y) === GOAL_POS.y && Math.round(pos.z) === GOAL_POS.z) {
                         isGameRunning = false;
                         isCleared = true; 
+                        document.body.classList.add('cleared');
                         document.exitPointerLock && document.exitPointerLock();
-                        goalPointer3D.visible = false; 
-                        document.getElementById('clear-time-disp').innerText = formatTime(gameTime);
                         
-                        // ★改修：LEVEL 3クリア時はエンディング画面にする
-                        if (currentLevel >= 3) {
-                            document.getElementById('clear-title').innerText = "CONGRATULATIONS!!";
-                            document.getElementById('clear-desc').innerHTML = `果てなき宇宙の迷路を踏破しました！<br>最終クリアタイム: <span style="font-weight:bold; color:#00e5ff;">${formatTime(gameTime)}</span><br>おめでとうございます！`;
-                            document.getElementById('btn-next-level').style.display = 'none';
+                        if (currentLevel >= 2) {
+                            document.getElementById('clear-title').innerText = texts[currentLang].mainCleared;
+                            let descHtml = `${texts[currentLang].clearTime}: <span style="font-weight:bold; color:#00e5ff;">${formatTime(gameTime)}</span>`;
+                            if (mazeStartTime) {
+                                descHtml += `<br><span style="font-size: 1rem; color: #aaa; margin-top: 10px; display: inline-block;">${texts[currentLang].startedAt}: ${formatDate(mazeStartTime)}</span>`;
+                            }
+                            document.getElementById('clear-desc').innerHTML = descHtml;
                         } else {
-                            document.getElementById('clear-title').innerText = "LEVEL CLEARED!";
-                            document.getElementById('clear-desc').innerHTML = `立体迷路を踏破しました！<br>クリアタイム: <span style="font-weight:bold; color:#00e5ff;">${formatTime(gameTime)}</span><br>次の階層へ進みますか？`;
-                            document.getElementById('btn-next-level').style.display = 'block';
+                            document.getElementById('clear-title').innerText = texts[currentLang].tutorialCleared;
+                            document.getElementById('clear-desc').innerHTML = `${texts[currentLang].clearTime}: <span style="font-weight:bold; color:#00e5ff;">${formatTime(gameTime)}</span>`;
                         }
                         
                         setTimeout(() => { clearScreen.style.display = 'flex'; }, 500);
@@ -1674,28 +1549,7 @@
                 camera.position.z = 0.3; 
             }
             
-            minimapPlayerMarker.position.copy(cameraRig.position);
-
-            const camWorldQuat = new THREE.Quaternion();
-            camera.getWorldQuaternion(camWorldQuat);
-            
-            const upVec = new THREE.Vector3(0, 1, 0).applyQuaternion(camWorldQuat);
-            const backVec = new THREE.Vector3(0, 0, 1).applyQuaternion(camWorldQuat);
-            const forwardVec = new THREE.Vector3(0, 0, -1).applyQuaternion(camWorldQuat);
-            
-            const targetPos = cameraRig.position.clone().addScaledVector(forwardVec, minimapOffsetForward);
-            
-            const camDist = 5.5; 
-            const offset = new THREE.Vector3()
-                .addScaledVector(upVec, camDist)
-                .addScaledVector(backVec, camDist);
-                
-            minimapCamera.position.copy(targetPos).add(offset);
-            minimapCamera.up.copy(upVec); 
-            minimapCamera.lookAt(targetPos); 
-
             renderer.render(scene, camera);
-            minimapRenderer.render(minimapScene, minimapCamera);
         }
 
         animate();
