@@ -314,7 +314,7 @@
         
         <div id="save-info" style="display:none; margin-bottom: 10px; font-size: 1.1rem; color: #ffd700; background: rgba(255, 215, 0, 0.1); padding: 10px 20px; border-radius: 5px; border: 1px solid rgba(255, 215, 0, 0.3);">
             <span data-i18n="dataRestoring">【データ復元中】</span><br>
-            <span data-i18n="level">LEVEL</span> <span id="save-level"></span> / <span data-i18n="time">TIME</span> <span id="save-time"></span>
+            <span data-i18n="time">TIME</span> <span id="save-time"></span>
         </div>
 
         <p style="font-size: 1.5rem; font-weight: bold; margin-top: 20px; animation: blink 2s infinite;" data-i18n="clickToMaze">Click to Maze</p>
@@ -431,7 +431,6 @@
                 ctrlMob3k: "2本指タップ", ctrlMob3v: "設定",
                 colon: "：",
                 dataRestoring: "【データ復元中】",
-                level: "LEVEL",
                 clickToMaze: "Click to Maze",
                 options: "OPTIONS",
                 lang: "言語 / Language",
@@ -464,7 +463,6 @@
                 ctrlMob3k: "2-Finger Tap", ctrlMob3v: "Menu",
                 colon: ":",
                 dataRestoring: "[Restoring Data]",
-                level: "LEVEL",
                 clickToMaze: "Click to Maze",
                 options: "OPTIONS",
                 lang: "Language / 言語",
@@ -961,6 +959,8 @@
         // セーブ＆ロード処理 (Firebase / LocalStorage)
         // ==========================================
         async function saveGame() {
+            if (currentLevel === 1) return; // チュートリアル中はセーブしない
+
             const data = {
                 level: currentLevel,
                 time: gameTime,
@@ -1012,7 +1012,7 @@
                 }
             }
 
-            if (!data) return false; // データなし
+            if (!data || data.level === 1) return false; // データなし、またはチュートリアルデータなら無効
             
             try {
                 currentLevel = data.level;
@@ -1084,8 +1084,7 @@
                 }
             }
 
-            if (data) {
-                document.getElementById('save-level').innerText = data.level;
+            if (data && data.level >= 2) {
                 document.getElementById('save-time').innerText = formatTime(data.time);
                 document.getElementById('save-info').style.display = 'block';
             } else {
