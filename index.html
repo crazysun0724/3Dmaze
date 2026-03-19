@@ -74,10 +74,18 @@
             z-index: 100;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             color: #00e5ff;
             text-align: center;
+            overflow-y: auto; 
+            padding: 30px 10px;
+            box-sizing: border-box;
+        }
+        /* 中央寄せしつつ、はみ出た時は上端からスクロール可能にするハック */
+        .overlay-screen::before,
+        .overlay-screen::after {
+            content: "";
+            margin: auto;
         }
         
         .title-3d {
@@ -128,9 +136,138 @@
         #menu-screen { display: none; }
         #clear-screen { display: none; }
 
+        /* ★追加：メニューを左右/上下に並べるためのフレックスボックス設定 */
+        .menu-content-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+            max-width: 900px;
+            margin-bottom: 20px;
+        }
+
+        .menu-controls-info {
+            text-align: left;
+            background: rgba(0, 229, 255, 0.05);
+            padding: 15px 25px;
+            border-radius: 5px;
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            flex: 1;
+            min-width: 280px;
+            box-sizing: border-box;
+        }
+
+        .menu-settings {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 320px;
+            box-sizing: border-box;
+        }
+
+        /* ★変更：テーブルのレイアウトをタイトル画面とオプション画面で最適化 */
+        .controls-table {
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        .controls-table:last-child {
+            margin-bottom: 0;
+        }
+        .controls-table th {
+            padding: 10px 0 5px 0;
+            font-weight: bold;
+        }
+        .controls-table td {
+            padding: 4px 0;
+            vertical-align: middle; 
+        }
+        .controls-table td.s {
+            padding: 0 10px;
+            text-align: center;
+        }
+        .controls-table td.v {
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        /* スタート画面：それぞれ独立した中央揃え */
+        #start-screen .controls-table {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #start-screen .controls-table th {
+            text-align: center;
+        }
+        #start-screen .controls-table td.k {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        /* ★変更：オプション画面のレイアウト（全体は左寄せ、項目は右揃え：左揃え） */
+        #menu-screen .controls-table {
+            margin-left: 0;
+            margin-right: auto;
+            width: auto;
+        }
+        #menu-screen .controls-table th {
+            text-align: left;
+            padding-top: 0;
+        }
+        #menu-screen .controls-table td.k {
+            text-align: right;
+            white-space: nowrap;
+            width: 140px; /* コロン位置を揃えるための固定幅 */
+        }
+
+        /* ★追加：スマホなどの横幅が狭い画面向けのレイアウト */
+        @media (max-width: 768px) {
+            .menu-content-wrapper {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
+        }
+
+        /* ★縦幅が狭い画面向けの見切れ防止レスポンシブ対応 */
+        @media (max-height: 850px) {
+            .title-3d { font-size: 5rem !important; margin-bottom: 10px !important; }
+            .overlay-screen h2 { margin-bottom: 10px !important; font-size: 1.5rem !important; }
+            .overlay-screen p { margin-bottom: 10px !important; font-size: 0.9rem !important; line-height: 1.3 !important; }
+            
+            #login-area { margin-bottom: 10px !important; padding: 10px !important; }
+            #save-info { margin-bottom: 5px !important; padding: 5px 15px !important; font-size: 0.95rem !important; }
+            p[data-i18n="clickToMaze"] { margin-top: 15px !important; font-size: 1.2rem !important; }
+
+            /* オプションメニューの余白・サイズ調整 */
+            .menu-content-wrapper { gap: 20px !important; margin-bottom: 10px !important; }
+            .menu-controls-info { padding: 10px 15px !important; }
+            .menu-control { margin-bottom: 10px !important; font-size: 1rem !important; width: 280px !important; }
+            #btn-save-quit { margin-top: 10px !important; padding: 10px 20px !important; font-size: 1rem !important; }
+
+            /* テーブルの縮小 */
+            .controls-table { font-size: 0.9rem !important; margin-bottom: 15px !important; }
+            .controls-table td { padding: 2px 0 !important; }
+            #menu-screen .controls-table td.k { width: 120px !important; }
+        }
+
+        @media (max-height: 600px) {
+            .title-3d { font-size: 3.5rem !important; margin-bottom: 5px !important; }
+            .overlay-screen p { margin-bottom: 5px !important; font-size: 0.8rem !important; line-height: 1.2 !important; }
+            #login-area { padding: 8px !important; }
+            .btn { padding: 8px 15px !important; font-size: 0.9rem !important; }
+            .menu-control { margin-bottom: 8px !important; width: 260px !important; }
+            
+            /* テーブルのさらなる縮小 */
+            .controls-table { font-size: 0.8rem !important; margin-bottom: 10px !important; }
+            #menu-screen .controls-table td.k { width: 110px !important; }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -151,15 +288,22 @@
     <!-- スタート画面 -->
     <div id="start-screen" class="overlay-screen" style="cursor: pointer;">
         <h1 class="title-3d" data-i18n="title">MAZE</h1>
-        <p>
-            <span data-i18n="subtitle" style="display:block; margin-bottom: 15px;">黄色く輝く「コア」を探し出せ。</span>
-            <span data-i18n="controls1" style="font-weight:bold;">【PC操作】</span><br>
-            <span data-i18n="controls2">マウス移動：見回す</span><br>
-            <span data-i18n="controls3">左クリック / Spaceキー：前進する</span><br>
-            <span data-i18n="controls4">WASD / 矢印キー：上下左右を向く</span><br>
-            <span data-i18n="controlsMenu">右クリック / Esc / Mキー：設定の開閉</span><br><br>
-            <span data-i18n="controlsMobile" style="font-weight:bold; color:#00e5ff;">【スマホ操作】<br>スワイプ：見回す / タップ：前進 / 2本指タップ：設定</span>
-        </p>
+        
+        <!-- ★変更：PCとスマホでテーブルを分割 -->
+        <table class="controls-table">
+            <tr><th colspan="3" data-i18n="controlsPC">【PC操作】</th></tr>
+            <tr><td data-i18n="ctrlPC1k" class="k">マウス移動</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlPC1v" class="v">見回す</td></tr>
+            <tr><td data-i18n="ctrlPC2k" class="k">左クリック<br>Spaceキー</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlPC2v" class="v">前進する</td></tr>
+            <tr><td data-i18n="ctrlPC3k" class="k">WASD<br>矢印キー</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlPC3v" class="v">上下左右を向く</td></tr>
+            <tr><td data-i18n="ctrlPC4k" class="k">右クリック<br>Escキー</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlPC4v" class="v">設定の開閉</td></tr>
+        </table>
+
+        <table class="controls-table">
+            <tr><th colspan="3" data-i18n="controlsMobile" style="color: #00e5ff;">【スマホ操作】</th></tr>
+            <tr style="color: #00e5ff;"><td data-i18n="ctrlMob1k" class="k">スワイプ</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlMob1v" class="v">見回す</td></tr>
+            <tr style="color: #00e5ff;"><td data-i18n="ctrlMob2k" class="k">タップ</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlMob2v" class="v">前進</td></tr>
+            <tr style="color: #00e5ff;"><td data-i18n="ctrlMob3k" class="k">2本指タップ</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlMob3v" class="v">設定</td></tr>
+        </table>
 
         <!-- ログイン＆保存情報エリア -->
         <div id="login-area" style="margin-bottom: 20px; padding: 15px; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 5px; cursor: default;">
@@ -185,37 +329,55 @@
     <div id="menu-screen" class="overlay-screen">
         <h2 data-i18n="options">OPTIONS</h2>
         
-        <div style="margin-bottom: 25px; text-align: left; background: rgba(0, 229, 255, 0.05); padding: 15px 25px; border-radius: 5px; border: 1px solid rgba(0, 229, 255, 0.2);">
-            <div data-i18n="controls1" style="font-weight:bold; margin-bottom: 8px; color: #ffd700;">【操作方法】</div>
-            <div data-i18n="controls2" style="font-size: 0.95rem; margin-bottom: 4px; color:#fff;">マウス移動：見回す</div>
-            <div data-i18n="controls3" style="font-size: 0.95rem; margin-bottom: 4px; color:#fff;">左クリック / Spaceキー：前進する</div>
-            <div data-i18n="controls4" style="font-size: 0.95rem; margin-bottom: 4px; color:#fff;">WASD / 矢印キー：上下左右を向く</div>
-            <div data-i18n="controlsMenu" style="font-size: 0.95rem; margin-bottom: 4px; color:#fff;">右クリック / Esc / Mキー：設定の開閉</div>
-            <div data-i18n="controlsMobile" style="font-size: 0.95rem; color:#fff;">【スマホ操作】<br>スワイプ：見回す / タップ：前進 / 2本指タップ：設定</div>
-        </div>
+        <div class="menu-content-wrapper">
+            <div class="menu-controls-info">
+                <!-- ★変更：オプション内の操作方法もテーブルを分割 -->
+                <table class="controls-table">
+                    <tr><th colspan="3" data-i18n="controlsPC" style="color: #ffd700;">【PC操作】</th></tr>
+                    <tr><td data-i18n="ctrlPC1k" class="k">マウス移動</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlPC1v" class="v">見回す</td></tr>
+                    <tr><td data-i18n="ctrlPC2k" class="k">左クリック<br>Spaceキー</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlPC2v" class="v">前進する</td></tr>
+                    <tr><td data-i18n="ctrlPC3k" class="k">WASD<br>矢印キー</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlPC3v" class="v">上下左右を向く</td></tr>
+                    <tr><td data-i18n="ctrlPC4k" class="k">右クリック<br>Escキー</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlPC4v" class="v">設定の開閉</td></tr>
+                </table>
+                
+                <table class="controls-table">
+                    <tr><th colspan="3" data-i18n="controlsMobile" style="color: #00e5ff;">【スマホ操作】</th></tr>
+                    <tr style="color: #00e5ff;"><td data-i18n="ctrlMob1k" class="k">スワイプ</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlMob1v" class="v">見回す</td></tr>
+                    <tr style="color: #00e5ff;"><td data-i18n="ctrlMob2k" class="k">タップ</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlMob2v" class="v">前進</td></tr>
+                    <tr style="color: #00e5ff;"><td data-i18n="ctrlMob3k" class="k">2本指タップ</td><td class="s" data-i18n="colon">：</td><td data-i18n="ctrlMob3v" class="v">設定</td></tr>
+                </table>
+            </div>
 
-        <div class="menu-control">
-            <span data-i18n="lang">言語 / Language</span>
-            <select id="lang-select" style="margin-left: 15px; padding: 5px; background: rgba(0,229,255,0.1); color: #00e5ff; border: 1px solid #00e5ff; border-radius: 3px; font-family: inherit; cursor: pointer; outline: none;">
-                <option value="ja">日本語</option>
-                <option value="en">English</option>
-            </select>
-        </div>
-        <div class="menu-control">
-            <span data-i18n="autoCenter">移動時の視点リセット</span>
-            <input type="checkbox" id="auto-center">
-        </div>
-        <div class="menu-control">
-            <span data-i18n="mouseSens">マウス感度</span>
-            <input type="range" id="sens-slider" min="1" max="100" value="100">
-        </div>
-        <div class="menu-control">
-            <span data-i18n="invertY">上下 (Y軸) を反転</span>
-            <input type="checkbox" id="invert-y">
-        </div>
-        <div class="menu-control">
-            <span data-i18n="invertX">左右 (X軸) を反転</span>
-            <input type="checkbox" id="invert-x">
+            <div class="menu-settings">
+                <div class="menu-control">
+                    <span data-i18n="lang">言語 / Language</span>
+                    <select id="lang-select" style="margin-left: 15px; padding: 5px; background: rgba(0,229,255,0.1); color: #00e5ff; border: 1px solid #00e5ff; border-radius: 3px; font-family: inherit; cursor: pointer; outline: none;">
+                        <option value="ja">日本語</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+                <div class="menu-control">
+                    <span data-i18n="autoCenter">移動時の視点リセット</span>
+                    <input type="checkbox" id="auto-center">
+                </div>
+                <!-- ★変更：PC用とスマホ用の感度スライダーを分離 -->
+                <div class="menu-control">
+                    <span data-i18n="mouseSensPC">PC マウス感度</span>
+                    <input type="range" id="sens-slider-pc" min="1" max="100" value="100">
+                </div>
+                <div class="menu-control">
+                    <span data-i18n="mouseSensMobile">スマホ スワイプ感度</span>
+                    <input type="range" id="sens-slider-mobile" min="1" max="100" value="100">
+                </div>
+                <div class="menu-control">
+                    <span data-i18n="invertY">上下 (Y軸) を反転</span>
+                    <input type="checkbox" id="invert-y">
+                </div>
+                <div class="menu-control">
+                    <span data-i18n="invertX">左右 (X軸) を反転</span>
+                    <input type="checkbox" id="invert-x">
+                </div>
+            </div>
         </div>
         
         <button id="btn-save-quit" class="btn" style="margin-top: 30px; background-color: rgba(255, 50, 50, 0.1); border-color: #ff3333; color: #ff3333;" data-i18n="backToTitle">セーブしてタイトルへ</button>
@@ -258,20 +420,24 @@
             ja: {
                 time: "TIME",
                 title: "MAZE",
-                subtitle: "黄色く輝く「コア」を探し出せ。",
-                controls1: "【操作方法】",
-                controls2: "マウス移動：見回す",
-                controls3: "左クリック / Spaceキー：前進する",
-                controls4: "WASD / 矢印キー：上下左右を向く",
-                controlsMenu: "右クリック / Esc / Mキー：設定の開閉",
-                controlsMobile: "【スマホ操作】<br>スワイプ：見回す / タップ：前進 / 2本指タップ：設定",
+                controlsPC: "【PC操作】",
+                ctrlPC1k: "マウス移動", ctrlPC1v: "見回す",
+                ctrlPC2k: "左クリック / Space", ctrlPC2v: "前進する",
+                ctrlPC3k: "WASD / 矢印キー", ctrlPC3v: "上下左右を向く",
+                ctrlPC4k: "右クリック / Esc", ctrlPC4v: "設定の開閉",
+                controlsMobile: "【スマホ操作】",
+                ctrlMob1k: "スワイプ", ctrlMob1v: "見回す",
+                ctrlMob2k: "タップ", ctrlMob2v: "前進",
+                ctrlMob3k: "2本指タップ", ctrlMob3v: "設定",
+                colon: "：",
                 dataRestoring: "【データ復元中】",
                 level: "LEVEL",
                 clickToMaze: "Click to Maze",
                 options: "OPTIONS",
                 lang: "言語 / Language",
                 autoCenter: "移動時の視点リセット",
-                mouseSens: "マウス感度",
+                mouseSensPC: "PC マウス感度",
+                mouseSensMobile: "スマホ スワイプ感度",
                 invertY: "上下 (Y軸) を反転",
                 invertX: "左右 (X軸) を反転",
                 backToTitle: "セーブしてタイトルへ",
@@ -287,20 +453,24 @@
             en: {
                 time: "TIME",
                 title: "MAZE",
-                subtitle: "Find the glowing yellow 'Core'.",
-                controls1: "[Controls]",
-                controls2: "Mouse: Look around",
-                controls3: "L-Click / Space: Move forward",
-                controls4: "WASD / Arrows: Look Up/Down/Left/Right",
-                controlsMenu: "Right Click / Esc / M: Toggle Settings",
-                controlsMobile: "[Mobile]<br>Swipe: Look / Tap: Move / 2-Finger Tap: Menu",
+                controlsPC: "[PC Controls]",
+                ctrlPC1k: "Mouse", ctrlPC1v: "Look around",
+                ctrlPC2k: "L-Click / Space", ctrlPC2v: "Move forward",
+                ctrlPC3k: "WASD / Arrows", ctrlPC3v: "Look Up/Down/Left/Right",
+                ctrlPC4k: "Right Click / Esc", ctrlPC4v: "Toggle Settings",
+                controlsMobile: "[Mobile Controls]",
+                ctrlMob1k: "Swipe", ctrlMob1v: "Look",
+                ctrlMob2k: "Tap", ctrlMob2v: "Move",
+                ctrlMob3k: "2-Finger Tap", ctrlMob3v: "Menu",
+                colon: ":",
                 dataRestoring: "[Restoring Data]",
                 level: "LEVEL",
                 clickToMaze: "Click to Maze",
                 options: "OPTIONS",
                 lang: "Language / 言語",
                 autoCenter: "Auto-center view on move",
-                mouseSens: "Mouse Sensitivity",
+                mouseSensPC: "PC Mouse Sens",
+                mouseSensMobile: "Mobile Swipe Sens",
                 invertY: "Invert Y-Axis",
                 invertX: "Invert X-Axis",
                 backToTitle: "SAVE & QUIT TO TITLE",
@@ -379,7 +549,8 @@
         let isCleared = false;
         let currentLevel = 1;
         let gameTime = 0;
-        let mouseSensitivity = 0.02; 
+        let mouseSensitivityPC = 0.02; 
+        let mouseSensitivityMobile = 0.05; // スマホは移動量が少ないので高めをデフォルトに
         let invertX = false;
         let invertY = false;
         let autoCentering = false;
@@ -1282,9 +1453,8 @@
         }
 
         // --- 操作関数 ---
-        function moveForward() {
-            if (isAnimating || !isGameRunning || animationQueue.length > 0) return;
-            
+        // ★追加：現在のカメラの視線（見た目）を新しい体の基準方向としてスナップする関数
+        function snapToLookDirection() {
             const lookVec = new THREE.Vector3();
             camera.getWorldDirection(lookVec);
             const { dir: startDir, up: startUp } = getClosestAxisAndUp(lookVec, up, dir);
@@ -1301,6 +1471,15 @@
                 dir.copy(startDir);
                 up.copy(startUp);
             }
+        }
+
+        function moveForward() {
+            if (isAnimating || !isGameRunning || animationQueue.length > 0) return;
+            
+            // ★変更：前進時も共通の関数で視線をスナップ
+            snapToLookDirection();
+            const startDir = dir.clone();
+            const startUp = up.clone();
             
             const forwardPos = pos.clone().add(startDir);
             
@@ -1359,22 +1538,57 @@
             processAnimationQueue();
         }
 
-        function turnLeft() { if(!isAnimating && isGameRunning && animationQueue.length === 0) startAnimation(pos, dir.clone().applyAxisAngle(up, Math.PI/2).round(), up); }
-        function turnRight() { if(!isAnimating && isGameRunning && animationQueue.length === 0) startAnimation(pos, dir.clone().applyAxisAngle(up, -Math.PI/2).round(), up); }
+        // ★変更：すべてのターン操作の直前で、現在の視線を基準にする（snapToLookDirection）
+        function turnLeft() { 
+            if(!isAnimating && isGameRunning && animationQueue.length === 0) {
+                snapToLookDirection();
+                startAnimation(pos, dir.clone().applyAxisAngle(up, Math.PI/2).round(), up); 
+            }
+        }
+        function turnRight() { 
+            if(!isAnimating && isGameRunning && animationQueue.length === 0) {
+                snapToLookDirection();
+                startAnimation(pos, dir.clone().applyAxisAngle(up, -Math.PI/2).round(), up); 
+            }
+        }
         function turnUp() { 
-            if(isAnimating || !isGameRunning || animationQueue.length > 0) return;
-            const right = new THREE.Vector3().crossVectors(dir, up).normalize();
-            startAnimation(pos, dir.clone().applyAxisAngle(right, Math.PI/2).round(), up.clone().applyAxisAngle(right, Math.PI/2).round()); 
+            if(!isAnimating && isGameRunning && animationQueue.length === 0) {
+                snapToLookDirection();
+                const right = new THREE.Vector3().crossVectors(dir, up).normalize();
+                startAnimation(pos, dir.clone().applyAxisAngle(right, Math.PI/2).round(), up.clone().applyAxisAngle(right, Math.PI/2).round()); 
+            }
         }
         function turnDown() { 
-            if(isAnimating || !isGameRunning || animationQueue.length > 0) return;
-            const right = new THREE.Vector3().crossVectors(dir, up).normalize();
-            startAnimation(pos, dir.clone().applyAxisAngle(right, -Math.PI/2).round(), up.clone().applyAxisAngle(right, -Math.PI/2).round()); 
+            if(!isAnimating && isGameRunning && animationQueue.length === 0) {
+                snapToLookDirection();
+                const right = new THREE.Vector3().crossVectors(dir, up).normalize();
+                startAnimation(pos, dir.clone().applyAxisAngle(right, -Math.PI/2).round(), up.clone().applyAxisAngle(right, -Math.PI/2).round()); 
+            }
         }
-        function rollLeftWallToFloor() { if(!isAnimating && isGameRunning && animationQueue.length === 0) startAnimation(pos, dir, up.clone().applyAxisAngle(dir, Math.PI/2).round()); }
-        function rollRightWallToFloor() { if(!isAnimating && isGameRunning && animationQueue.length === 0) startAnimation(pos, dir, up.clone().applyAxisAngle(dir, -Math.PI/2).round()); }
-        function rollCeilingToFloor() { if(!isAnimating && isGameRunning && animationQueue.length === 0) startAnimation(pos, dir, up.clone().negate(), 'rollLeft180'); }
-        function turnAround() { if(!isAnimating && isGameRunning && animationQueue.length === 0) startAnimation(pos, dir.clone().applyAxisAngle(up, -Math.PI).round(), up, 'turn180'); }
+        function rollLeftWallToFloor() { 
+            if(!isAnimating && isGameRunning && animationQueue.length === 0) {
+                snapToLookDirection();
+                startAnimation(pos, dir, up.clone().applyAxisAngle(dir, Math.PI/2).round()); 
+            }
+        }
+        function rollRightWallToFloor() { 
+            if(!isAnimating && isGameRunning && animationQueue.length === 0) {
+                snapToLookDirection();
+                startAnimation(pos, dir, up.clone().applyAxisAngle(dir, -Math.PI/2).round()); 
+            }
+        }
+        function rollCeilingToFloor() { 
+            if(!isAnimating && isGameRunning && animationQueue.length === 0) {
+                snapToLookDirection();
+                startAnimation(pos, dir, up.clone().negate(), 'rollLeft180'); 
+            }
+        }
+        function turnAround() { 
+            if(!isAnimating && isGameRunning && animationQueue.length === 0) {
+                snapToLookDirection();
+                startAnimation(pos, dir.clone().applyAxisAngle(up, -Math.PI).round(), up, 'turn180'); 
+            }
+        }
 
         // --- メニュー管理とマウスロック ---
         let menuFromTitle = false;
@@ -1460,12 +1674,13 @@
             document.body.classList.remove('locked');
         });
 
-        function applyFreeLook(deltaX, deltaY) {
+        // ★変更：感度を引数として受け取るように改修
+        function applyFreeLook(deltaX, deltaY, sensitivity) {
             const multX = invertX ? 1 : -1;
             const multY = invertY ? 1 : -1;
             
-            const yawAngle = deltaX * mouseSensitivity * multX;
-            const pitchAngle = deltaY * mouseSensitivity * multY;
+            const yawAngle = deltaX * sensitivity * multX;
+            const pitchAngle = deltaY * sensitivity * multY;
 
             const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawAngle);
             const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchAngle);
@@ -1477,7 +1692,8 @@
 
         window.addEventListener('mousemove', (e) => {
             if (!isGameRunning || document.pointerLockElement !== document.body) return;
-            applyFreeLook(e.movementX, e.movementY);
+            // ★PC用の感度を渡す
+            applyFreeLook(e.movementX, e.movementY, mouseSensitivityPC);
         });
 
         // --- タッチ操作 (スマホ用) ---
@@ -1537,8 +1753,8 @@
             }
             
             if (touchMoved) {
-                // スマホは指の移動量が少ないため、感度を少し高めに設定
-                applyFreeLook(deltaX * 2.5, deltaY * 2.5);
+                // ★スマホ用の感度を渡す（係数はスライダー値に反映済み）
+                applyFreeLook(deltaX, deltaY, mouseSensitivityMobile);
             }
             
             lastTouchX = currentX;
@@ -1559,7 +1775,8 @@
         function saveSettings() {
             const settings = {
                 lang: currentLang,
-                sensSlider: document.getElementById('sens-slider').value,
+                sensSliderPC: document.getElementById('sens-slider-pc').value,
+                sensSliderMobile: document.getElementById('sens-slider-mobile').value,
                 invertY: invertY,
                 invertX: invertX,
                 autoCentering: autoCentering
@@ -1574,12 +1791,26 @@
                     const settings = JSON.parse(saved);
                     if(settings.lang) currentLang = settings.lang;
                     document.getElementById('lang-select').value = currentLang;
-                    document.getElementById('sens-slider').value = settings.sensSlider;
+                    
+                    // 古いセーブデータ（sensSlider）との互換性を保ちつつ読み込み
+                    if (settings.sensSlider) {
+                        document.getElementById('sens-slider-pc').value = settings.sensSlider;
+                        document.getElementById('sens-slider-mobile').value = settings.sensSlider;
+                        mouseSensitivityPC = 0.002 * Math.pow(10, (parseInt(settings.sensSlider) - 50) / 50);
+                        mouseSensitivityMobile = (0.002 * Math.pow(10, (parseInt(settings.sensSlider) - 50) / 50)) * 2.5;
+                    } else {
+                        const valPC = settings.sensSliderPC || 100;
+                        const valMob = settings.sensSliderMobile || 100;
+                        document.getElementById('sens-slider-pc').value = valPC;
+                        document.getElementById('sens-slider-mobile').value = valMob;
+                        mouseSensitivityPC = 0.002 * Math.pow(10, (parseInt(valPC) - 50) / 50);
+                        mouseSensitivityMobile = (0.002 * Math.pow(10, (parseInt(valMob) - 50) / 50)) * 2.5;
+                    }
+
                     document.getElementById('invert-y').checked = settings.invertY;
                     document.getElementById('invert-x').checked = settings.invertX;
                     document.getElementById('auto-center').checked = settings.autoCentering;
                     
-                    mouseSensitivity = 0.002 * Math.pow(10, (parseInt(settings.sensSlider) - 50) / 50);
                     invertY = settings.invertY;
                     invertX = settings.invertX;
                     autoCentering = settings.autoCentering;
@@ -1605,11 +1836,20 @@
             saveSettings();
         });
         
-        document.getElementById('sens-slider').addEventListener('input', (e) => {
+        // ★変更：PC用とスマホ用でスライダーの入力イベントを分割
+        document.getElementById('sens-slider-pc').addEventListener('input', (e) => {
             const val = parseInt(e.target.value);
-            mouseSensitivity = 0.002 * Math.pow(10, (val - 50) / 50);
+            mouseSensitivityPC = 0.002 * Math.pow(10, (val - 50) / 50);
             saveSettings();
         });
+
+        document.getElementById('sens-slider-mobile').addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            // スマホは移動量が少ないのでベースで2.5倍しておく
+            mouseSensitivityMobile = (0.002 * Math.pow(10, (val - 50) / 50)) * 2.5;
+            saveSettings();
+        });
+
         document.getElementById('invert-y').addEventListener('change', (e) => { 
             invertY = e.target.checked; 
             saveSettings();
@@ -1620,7 +1860,7 @@
         });
 
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' || e.key === 'm' || e.key === 'M') {
+            if (e.key === 'Escape') {
                 if (isCleared) return; 
                 if (menuScreen.style.display === 'flex') {
                     if (menuFromTitle) {
